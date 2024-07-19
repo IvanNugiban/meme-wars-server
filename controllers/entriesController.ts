@@ -10,6 +10,15 @@ class EntriesController {
         }
     }
 
+    async userSubmited(req : Request, res : Response) {
+        try {
+            const submited = await entriesService.userSubmited(req.query.nearId as string);
+            res.json(submited);
+        } catch (e) {
+            res.status(404).json(e);            
+        }
+    }
+
     async add(req : Request, res : Response) {
 
     }
