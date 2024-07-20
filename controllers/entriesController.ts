@@ -26,7 +26,7 @@ class EntriesController {
             await entriesService.add(req.query.nearId as string, req.file);
             res.status(200).json("Success!");
         } catch (e) {
-            
+
             if (req.file?.path) fs.unlink(req.file?.path, (err) => {
                 if (err) throw err;
                 console.log('File was deleted');
