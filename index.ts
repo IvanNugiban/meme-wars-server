@@ -3,10 +3,12 @@ import dotenv from "dotenv"
 import helmet from 'helmet'
 import cron from "node-cron"
 import cors from "cors"
+import path from "path"
 import mongoose from "mongoose"
 import Events from "./models/Events"
 import entriesRoutes from "./routes/entriesRoutes"
 import Event from "./models/Event"
+import User from "./models/User"
 
 
 dotenv.config()
@@ -16,14 +18,9 @@ const port = process.env.PORT || 5000;
 const dbUrl = process.env.DB_URL || "";
 
 app.use(cors());
+app.use('/uploads', express.static('uploads'));
 app.use(express.json());
-app.use(express.static('public'))
 app.use(helmet());
-
-cron.schedule('0 0 * * *', () => {
-    // Code code to execute at 00:00 UTC
-    console.log('Running task at 00:00 UTC');
-  });
 
 app.use("/entries", entriesRoutes);
 
@@ -43,6 +40,13 @@ const initialize = async () => {
         await newEvents.save();     
     }
 }
+
+cron.schedule('0 0 * * *', async () => {
+    for await (const user of User.find()) {
+        user.sumbitedToday = false;
+        await user.save();
+    }
+});
 
 const start = async () => {
     try {

@@ -6,7 +6,7 @@ const userMiddleware = async (req: Request, res: Response, next: NextFunction) =
   const nearId = req.query?.nearId;
 
   if (!nearId) {
-    res.status(400).json({ error: 'Bad Request: nearId is required.' });
+    return res.status(400).json('Bad Request: nearId is required.' );
   }
 
   const user = await User.findOne({nearId});

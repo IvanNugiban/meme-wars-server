@@ -1,6 +1,6 @@
 
 interface IEntry {
-    near_id : string,
+    nearId : string,
     image : string,
     score: number,
     votes: number
