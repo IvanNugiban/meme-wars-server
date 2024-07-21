@@ -5,8 +5,9 @@ import helmet from 'helmet'
 import mongoose from "mongoose"
 import cron from "node-cron"
 import entriesRoutes from "./routes/entriesRoutes"
+import eventsRoutes from "./routes/eventsRoutes"
 import initialize from "./utils/initialize"
-import resetEvent from "./utils/resetEvent"
+import eventsService from "./services/eventsService"
 
 dotenv.config()
 
@@ -22,9 +23,10 @@ app.use(helmet());
 
 // Endpoints
 app.use("/entries", entriesRoutes);
+app.use("/events", eventsRoutes)
 
 // Schedules
-cron.schedule('0 0 * * *', resetEvent);
+cron.schedule('0 0 * * *', eventsService.resetEvent);
 
 const start = async () => {
     try {

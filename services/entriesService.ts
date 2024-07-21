@@ -20,19 +20,23 @@ class EntriesSerivce {
         return user?.sumbitedToday;
     }
 
-    async add(nearId: string, file : Express.Multer.File) {
+    async add(nearId: string, path : string, current: boolean = false) {
 
         const user = await User.findOne({nearId});
 
         if (!user || user.sumbitedToday) throw "You've already submited your meme!";
 
         user.sumbitedToday = true;
-        const entry = new Entry({nearId, image: file.path});
+        const entry = new Entry({nearId, image: path});
         const events = await Events.findOne();
 
         if (!events) throw "Unknown error!";
         
-        events.nextEvent.entries.push(entry);
+        if (!current) events.nextEvent.entries.push(entry);
+        else {
+            if (!events.activeEvent) throw "There is no active event right now.";
+            events.activeEvent.entries.push(entry);
+        }
 
         await events.save();
         await user.save();
