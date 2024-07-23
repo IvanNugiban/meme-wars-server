@@ -33,13 +33,17 @@ class EventsService {
 
         if (!events) return;
 
-        if (events.nextEvent.entries.length < minimumEntries) throw "Too little entries for next event!" ;
+        if (events.nextEvent.entries.length < minimumEntries) throw "Too little entries for next event!";
 
         // Summarize the results
         await this.updateLeaderboard();
 
+        const now = new Date();
+
         if (events.activeEvent) events.pastEvents.push(events.activeEvent);
         events.activeEvent = events.nextEvent;
+        events.activeEvent.startDate = now;
+        events.activeEvent.endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12, 0, 0));
         events.nextEvent = new Event();
         await events.save();
         await this.updateLeaderboard();

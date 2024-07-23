@@ -33,6 +33,7 @@ class EntriesSerivce {
         if (!events) throw "Unknown error!";
 
         if (!current) events.nextEvent.entries.push(entry);
+        
         else {
             if (!events.activeEvent) throw "There is no active event right now.";
             events.activeEvent.entries.push(entry);

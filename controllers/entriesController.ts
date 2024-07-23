@@ -1,8 +1,10 @@
+import axios from 'axios';
 import { Request, Response } from "express";
+import path from "path";
+import { userAuth } from "../middleware/user.middleware";
 import entriesService from "../services/entriesService";
-import fs from 'fs'
-import axios from 'axios'
-import userMiddleware, { userAuth } from "../middleware/user.middleware";
+const fs = require('fs').promises;
+
 
 class EntriesController {
     async getPair(req: Request, res: Response) {
@@ -28,12 +30,9 @@ class EntriesController {
             await entriesService.add(req.query.nearId as string, req.file.path);
             res.json("Success!");
         }
-        
+
         catch (e) {
-            if (req.file?.path) fs.unlink(req.file?.path, (err) => {
-                if (err) throw err;
-                console.log('File was deleted');
-            });
+            if (req.file?.path) await fs.unlink(req.file?.path);
 
             res.status(400).json(e);
         }
@@ -42,18 +41,35 @@ class EntriesController {
     async addTest(req: Request, res: Response) {
         try {
             // Fetch memes
-            const memes = await axios.get("https://meme-api.com/gimme/20");
-            // Fetch usernames
-            const users = await axios.get(`https://randomuser.me/api/?results=${memes.data.memes.length}`);
+            const memes: { url: string }[] = [];
 
+            // Max amount of items per one call in this api - 20. This workaround helps to fetch around 100 memes.
+            for (let i = 0; i < 5; i++) {
+                const meme = await axios.get("https://meme-api.com/gimme/20");
+                memes.push(...meme.data.memes);
+            }
+
+            // Fetch usernames
+            const users = await axios.get(`https://randomuser.me/api/?results=${memes.length}`);
+            
             for (let i = 0; i < users.data.results.length; i++) {
                 req.query.nearId = users.data.results[i].login.username + ".near";
                 await userAuth(req.query.nearId as string);
-                await entriesService.add(req.query.nearId as string, memes.data.memes[i].url, req.query.current === "true");
+                
+                // Download memes to uploads folder
+                const response = await axios.get(memes[i].url, { responseType: 'arraybuffer' });
+
+                const filename = Date.now() + ".png";
+
+
+                await fs.writeFile(path.resolve('uploads') + "/" + filename, response.data);
+
+                await entriesService.add(req.query.nearId as string, "uploads/" + filename, req.query.current === "true");
             }
 
-            res.json(`Successfully added ${memes.data.memes.length} entries!`)
+            res.json(`Successfully added ${memes.length} entries!`)
         } catch (e) {
+            console.log(e);
             res.status(500).json(e);
         }
     }
