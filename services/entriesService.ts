@@ -10,28 +10,28 @@ class EntriesSerivce {
         if (!events?.activeEvent) {
             throw "The event hasn't started yet. Come back tomorrow!";
         }
-    }; 
+    };
 
-    async userSubmited(nearId: string) : Promise<boolean> {
-        const user = await User.findOne({nearId});
+    async userSubmited(nearId: string): Promise<boolean> {
+        const user = await User.findOne({ nearId });
 
         if (!user) return false;
 
         return user?.sumbitedToday;
     }
 
-    async add(nearId: string, path : string, current: boolean = false) {
+    async add(nearId: string, path: string, current: boolean = false) {
 
-        const user = await User.findOne({nearId});
+        const user = await User.findOne({ nearId });
 
         if (!user || user.sumbitedToday) throw "You've already submited your meme!";
 
         user.sumbitedToday = true;
-        const entry = new Entry({nearId, image: path});
+        const entry = new Entry({ nearId, image: path });
         const events = await Events.findOne();
 
         if (!events) throw "Unknown error!";
-        
+
         if (!current) events.nextEvent.entries.push(entry);
         else {
             if (!events.activeEvent) throw "There is no active event right now.";

@@ -6,8 +6,8 @@ import mongoose from "mongoose"
 import cron from "node-cron"
 import entriesRoutes from "./routes/entriesRoutes"
 import eventsRoutes from "./routes/eventsRoutes"
-import initialize from "./utils/initialize"
 import eventsService from "./services/eventsService"
+import initialize from "./utils/initialize"
 
 dotenv.config()
 
@@ -27,6 +27,7 @@ app.use("/events", eventsRoutes)
 
 // Schedules
 cron.schedule('0 0 * * *', eventsService.resetEvent);
+cron.schedule('*/5 * * * *', eventsService.updateLeaderboard);
 
 const start = async () => {
     try {
