@@ -1,7 +1,14 @@
 import Events from "../models/Events";
 import Event from "../models/Event";
+import fs from 'fs'
 
 const initialize = async () => {
+
+    // Create uploads folder
+    if (!fs.existsSync('uploads')){
+        fs.mkdirSync('uploads');
+    }
+
     // Check if events document already created
     const events = await Events.countDocuments();
     
