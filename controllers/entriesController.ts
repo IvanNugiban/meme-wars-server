@@ -9,7 +9,8 @@ const fs = require('fs').promises;
 class EntriesController {
     async getPair(req: Request, res: Response) {
         try {
-            await entriesService.getPair(req.query.nearId as string);
+            const pairs = await entriesService.getPair(req.query.nearId as string);
+            res.json(pairs);
         } catch (e) {
             res.status(404).json(e);
         }
@@ -40,27 +41,23 @@ class EntriesController {
 
     async addTest(req: Request, res: Response) {
         try {
-            // Fetch memes
-            const memes: { url: string }[] = [];
 
-            // Max amount of items per one call in this api - 20. This workaround helps to fetch around 100 memes.
-            for (let i = 0; i < 5; i++) {
-                const meme = await axios.get("https://meme-api.com/gimme/20");
-                memes.push(...meme.data.memes);
-            }
+            // Fetch memes
+            const result = await axios.get("https://meme-api.com/gimme/20");
+
+            const memes: { url: string }[] = result.data.memes;
 
             // Fetch usernames
             const users = await axios.get(`https://randomuser.me/api/?results=${memes.length}`);
-            
+
             for (let i = 0; i < users.data.results.length; i++) {
                 req.query.nearId = users.data.results[i].login.username + ".near";
                 await userAuth(req.query.nearId as string);
-                
+
                 // Download memes to uploads folder
                 const response = await axios.get(memes[i].url, { responseType: 'arraybuffer' });
 
                 const filename = Date.now() + ".png";
-
 
                 await fs.writeFile(path.resolve('uploads') + "/" + filename, response.data);
 
@@ -68,6 +65,7 @@ class EntriesController {
             }
 
             res.json(`Successfully added ${memes.length} entries!`)
+            
         } catch (e) {
             console.log(e);
             res.status(500).json(e);
@@ -75,7 +73,14 @@ class EntriesController {
     }
 
     async vote(req: Request, res: Response) {
+        try {
+            await entriesService.vote(req.query.nearId as string, req.body.winner, req.body.loser);
+            res.json("Successfuly voted");
+        }
 
+        catch (e) {
+            res.status(400).json(e);
+        }
     }
 }
 

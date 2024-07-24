@@ -26,6 +26,7 @@ class EventsService {
 
         for await (const user of User.find()) {
             user.sumbitedToday = false;
+            user.votedToday = 0;
             await user.save();
         }
 
@@ -40,11 +41,23 @@ class EventsService {
 
         const now = new Date();
 
+        // End current event
         if (events.activeEvent) events.pastEvents.push(events.activeEvent);
+
+        // Begin event
         events.activeEvent = events.nextEvent;
+
+        // Set vote limit
+        events.activeEvent.voteLimit = Math.round(Math.min(events.activeEvent.entries.length / 2.5, 30));
+
+        //Set dates
         events.activeEvent.startDate = now;
         events.activeEvent.endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 12, 0, 0));
+
+        // Create next event
         events.nextEvent = new Event();
+
+        // Save and update leaderboard
         await events.save();
         await this.updateLeaderboard();
     }
@@ -55,11 +68,9 @@ class EventsService {
 
         if (!events || !events.activeEvent) return;
 
-        let leaderboard = events.activeEvent.entries;
+        events.activeEvent.leaderboard = events.activeEvent.entries.slice();
 
-        leaderboard = events.activeEvent.entries.slice();
-
-        leaderboard = events.activeEvent.entries;
+        const leaderboard = events.activeEvent.leaderboard;
 
         leaderboard.sort((a, b) => b.score - a.score);
 

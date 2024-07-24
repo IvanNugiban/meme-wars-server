@@ -10,7 +10,8 @@ export const userAuth = async (nearId: string) => {
   const user = await User.findOne({ nearId });
 
   if (!user) {
-    const newUser = new User({ nearId })
+    const newUser = new User({ nearId });
+    
     await newUser.save();
   }
 }
@@ -23,8 +24,9 @@ const userMiddleware = async (req: Request, res: Response, next: NextFunction) =
   }
 
   catch (e) {
-    res.status(400).json(e);
+    return res.status(400).json(e);
   }
+
   next();
 };
 
